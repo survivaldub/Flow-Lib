@@ -1,0 +1,44 @@
+/**
+ * @license MIT
+ * @copyright Copyright (c) 2026, GoldFrite
+ */
+
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { IBackground } from '../../types/background.js'
+
+export default class Background {
+  private readonly url: string
+
+  /**
+   * Manage the background of the Launcher.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   * 
+   * @param url The URL of your EML AdminTool website.
+   */
+  constructor(url: string) {
+    this.url = `${url}/api`
+  }
+
+  /**
+   * Get the current background from the EML AdminTool.
+   * @returns The current Background object, or `null` if no background is set.
+   */
+  async getBackground(): Promise<IBackground | null> {
+    try {
+      const req = await fetch(`${this.url}/background`)
+
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching background: HTTP ${req.status} ${errorText}`)
+      }
+      const data: IBackground | null = await req.json()
+
+      return data ?? null
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching background: ${err instanceof Error ? err.message : err}`)
+    }
+  }
+}
+

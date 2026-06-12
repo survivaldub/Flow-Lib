@@ -1,0 +1,8 @@
+node_modules/
+dist/
+test/drasl-*
+.DS_STORE
+
+.env
+.env.*
+test/test-config.ts
