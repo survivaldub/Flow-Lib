@@ -101,6 +101,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
         } catch {
           await fs.mkdir(filePath, { recursive: true })
         }
+        return // Do not attempt to hash or download folders
       }
       let needsDownload = false
 
