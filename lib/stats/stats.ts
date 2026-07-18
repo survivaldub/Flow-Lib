@@ -7,6 +7,7 @@ import utils from '../utils/utils.js'
 export default class Stats {
   private readonly url: string
   private readonly version: string
+  private readonly clientId: string | null
   private readonly events: StatEvent[]
   private token: string | null = null
   private initialized = false
@@ -30,13 +31,15 @@ export default class Stats {
    * @param url The URL of your EML AdminTool website.
    * @param version The version of the launcher (from the package.json). This is used to track
    * which versions of the launcher are being used, and to help you improve the launcher.
+   * @param clientId The unique client ID of the launcher installation (or null).
    * @param events [Optional: defaults to all events] The events to track. Note that if you want to
    * track the `STARTUP` event, you should initialize this class as soon as possible in your code,
    * so that it can send the `STARTUP` event as soon as possible after the launcher is started.
    */
-  constructor(url: string, version: string, events: StatEvent[] = ['STARTUP', 'LOGIN', 'LAUNCH', 'BOOTSTRAP']) {
+  constructor(url: string, version: string, clientId: string | null = null, events: StatEvent[] = ['STARTUP', 'LOGIN', 'LAUNCH', 'BOOTSTRAP']) {
     this.url = `${url}/api`
     this.version = version
+    this.clientId = clientId
     this.events = events
   }
 
@@ -166,6 +169,7 @@ export default class Stats {
       }
 
       const e = event.toLowerCase()
+      const payload = this.clientId ? { ...data, clientId: this.clientId } : data
 
       const req = await fetch(`${this.url}/stats/${e}`, {
         method: 'POST',
@@ -173,7 +177,7 @@ export default class Stats {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       })
 
       if (!req.ok) {
