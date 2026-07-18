@@ -77,15 +77,6 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
   async getFilesToDownload(files: File[]): Promise<File[]> {
     let filesToDownload: File[] = []
 
-    const cachePath = path_.join(this.dest, '.eml_cache.json')
-    let cache: Record<string, { mtimeMs: number; size: number; sha1: string }> = {}
-    try {
-      const cacheData = await fs.readFile(cachePath, 'utf8')
-      cache = JSON.parse(cacheData)
-    } catch {
-      cache = {}
-    }
-
     const promises = files.map(async (file) => {
       const filePath = path_.join(this.dest, file.path, file.name)
       const relative = path_.relative(this.dest, filePath)
@@ -106,18 +97,8 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
       let needsDownload = false
 
       try {
-        const stat = await fs.stat(filePath)
-        let hash = ''
-        const cached = cache[filePath]
-        
-        if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
-          hash = cached.sha1
-        } else {
-          hash = await utils.getFileHash(filePath)
-          cache[filePath] = { mtimeMs: stat.mtimeMs, size: stat.size, sha1: hash }
-        }
-
-        if (file.sha1 && file.sha1 !== hash) {
+        await fs.access(filePath)
+        if (file.sha1 && file.sha1 !== (await utils.getFileHash(filePath))) {
           needsDownload = true
         }
       } catch {
@@ -130,12 +111,6 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
     })
 
     await Promise.all(promises)
-
-    try {
-      await fs.writeFile(cachePath, JSON.stringify(cache))
-    } catch (err) {
-      // Ignore cache save errors
-    }
 
     return filesToDownload
   }
