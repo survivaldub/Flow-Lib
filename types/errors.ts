@@ -8,7 +8,7 @@
  */
 export class EMLLibError extends Error {
   code: ErrorCode
-  message: any
+  declare message: any
 
   constructor(code: ErrorCode, message: any) {
     super(message)
