@@ -124,6 +124,18 @@ export default class Stats {
     }
   }
 
+  /**
+   * Send a login stat event.
+   * @param type The authentication type.
+   */
+  async sendLogin(type: 'microsoft' | 'yggdrasil' | 'azauth' | 'crack'): Promise<void> {
+    if (!this.initialized) {
+      console.warn('Stats system is not initialized. Skipping login event.')
+      return
+    }
+    await this.sendStat('LOGIN', { type })
+  }
+
   private async getStatsToken() {
     try {
       if (this.token) {
