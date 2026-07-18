@@ -43,7 +43,7 @@ export default class MicrosoftAuth {
 
       if (!req.ok) {
         const errorText = await req.text()
-        throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth failed: HTTP ${req.status} ${errorText}`)
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth failed: HTTP ${req.status}${parseErrorText(errorText)}`)
       }
       const data = await req.json()
 
@@ -90,7 +90,7 @@ export default class MicrosoftAuth {
 
       if (!req.ok) {
         const errorText = await req.text()
-        throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth refresh failed: HTTP ${req.status} ${errorText}`)
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth refresh failed: HTTP ${req.status}${parseErrorText(errorText)}`)
       }
       const data = await req.json()
 
@@ -136,7 +136,7 @@ export default class MicrosoftAuth {
 
       if (!xblReq.ok) {
         const errorText = await xblReq.text()
-        throw new EMLLibError(ErrorType.AUTH_ERROR, `Xbox Live authentication failed: HTTP ${xblReq.status} ${errorText}`)
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `Xbox Live authentication failed: HTTP ${xblReq.status}${parseErrorText(errorText)}`)
       }
       const xblData = await xblReq.json()
 
@@ -155,7 +155,7 @@ export default class MicrosoftAuth {
 
       if (!xstsReq.ok) {
         const errorText = await xstsReq.text()
-        throw new EMLLibError(ErrorType.AUTH_ERROR, `XSTS authentication failed: HTTP ${xstsReq.status} ${errorText}. Check Xbox privacy settings.`)
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `XSTS authentication failed: HTTP ${xstsReq.status}${parseErrorText(errorText)}. Check Xbox privacy settings.`)
       }
       const xstsData = await xstsReq.json()
 
@@ -167,7 +167,7 @@ export default class MicrosoftAuth {
 
       if (!mcauthReq.ok) {
         const errorText = await mcauthReq.text()
-        throw new EMLLibError(ErrorType.AUTH_ERROR, `Minecraft authentication with Xbox failed: HTTP ${mcauthReq.status} ${errorText}`)
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `Minecraft authentication with Xbox failed: HTTP ${mcauthReq.status}${parseErrorText(errorText)}`)
       }
       const mcauthData = await mcauthReq.json()
 
@@ -178,7 +178,7 @@ export default class MicrosoftAuth {
 
       if (!mcgameReq.ok) {
         const errorText = await mcgameReq.text()
-        throw new EMLLibError(ErrorType.AUTH_ERROR, `Minecraft game ownership check failed: HTTP ${mcgameReq.status} ${errorText}`)
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `Minecraft game ownership check failed: HTTP ${mcgameReq.status}${parseErrorText(errorText)}`)
       }
       const mcgameData = await mcgameReq.json()
 
@@ -215,7 +215,7 @@ export default class MicrosoftAuth {
 
       if (!profileReq.ok) {
         const errorText = await profileReq.text()
-        throw new EMLLibError(ErrorType.AUTH_ERROR, `Profile request failed: HTTP ${profileReq.status} ${errorText}`)
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `Profile request failed: HTTP ${profileReq.status}${parseErrorText(errorText)}`)
       }
       const profileData = await profileReq.json()
 
@@ -240,6 +240,20 @@ export default class MicrosoftAuth {
       if (i < 4) result += '-'
     }
     return result
+  }
+}
+
+function parseErrorText(text: string): string {
+  try {
+    const parsed = JSON.parse(text)
+    if (parsed) {
+      const msg = parsed.errorMessage || parsed.error_description || parsed.message || parsed.Message || parsed.error
+      if (msg) return `: ${msg}`
+    }
+    return ''
+  } catch {
+    const cleanText = text.trim()
+    return cleanText ? `: ${cleanText.substring(0, 100)}` : ''
   }
 }
 
