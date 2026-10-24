@@ -120,6 +120,9 @@ export default class FileManager extends EventEmitter<FileManagerEvents> {
       let artifact: Artifact | undefined
 
       if (lib.natives) {
+        // Natives also have OS rules: e.g. Minecraft 1.8.9 lists LWJGL 2.9.2 for macOS only, and its Windows
+        // natives would overwrite the ones of LWJGL 2.9.4
+        if (!utils.isLibAllowed(lib)) continue
         type = 'NATIVE'
         artifact = await this.patchNative(lib)
         if (!artifact) continue
@@ -324,7 +327,7 @@ export default class FileManager extends EventEmitter<FileManagerEvents> {
       await fs.mkdir(nativesFolder, { recursive: true })
     }
 
-    const promises = natives.map((native) => {
+    const extract = (native: File) => {
       return new Promise<void>((resolve, reject) => {
         const zipPath = path_.join(this.config.root, native.path, native.name)
         if (!existsSync(zipPath)) return resolve()
@@ -393,9 +396,10 @@ export default class FileManager extends EventEmitter<FileManagerEvents> {
           zipfile.on('error', reject)
         })
       })
-    })
+    }
 
-    await Promise.all(promises)
+    // One archive after the other: two archives with the same file would write it at the same time
+    for (const native of natives) await extract(native)
 
     this.emit('extract_end', { amount: files.length })
 
