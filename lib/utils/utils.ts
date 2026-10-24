@@ -5,12 +5,14 @@
 
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import path_ from 'node:path'
-import fs from 'node:fs'
+import fs, { createWriteStream } from 'node:fs'
 import os from 'node:os'
 import { createHash } from 'node:crypto'
 import { pipeline } from 'node:stream/promises'
 import { ExtraFile } from '../../types/file.js'
 import { ResolvedConfig } from '../../types/config.js'
+import yauzl from 'yauzl'
+import yazl from 'yazl'
 
 class Utils {
   /**
@@ -47,10 +49,11 @@ class Utils {
 
   /**
    * Get the current architecture Minecraft-code.
-   * @returns The architecture (`'x64'` or `'x86'`).
+   * @returns The architecture (`'x64'`, `'arm64'` or `'x86'`).
    */
   getArch_MCCode() {
-    if (process.arch === 'x64' || process.arch === 'arm64') return 'x64'
+    if (process.arch === 'x64') return 'x64'
+    if (process.arch === 'arm64') return 'arm64'
     return 'x86'
   }
 
@@ -60,6 +63,20 @@ class Utils {
    */
   getOSVersion(): string {
     return os.release()
+  }
+
+  /**
+   * Check if the current operating system is supported by EML Lib.
+   * @returns `true` if the operating system is supported, `false` otherwise.
+   */
+  isOSSupported(): boolean {
+    const os = this.getOS()
+    const arch = this.getArch()
+    if (arch === '32') return false
+    if (os === 'win') return true
+    if (os === 'mac') return true
+    if (os === 'lin' && process.arch === 'x64') return true
+    return false
   }
 
   /**
@@ -80,8 +97,8 @@ class Utils {
    * @returns The path to the root folder (e.g. `'C:\Users\user\AppData\Roaming\.minecraft'`).
    */
   getRootFolder(config: ResolvedConfig): string {
-    if (config.slug && config.storage === 'isolated') {
-      const slug = this.sanitizeSlug(config.slug)
+    if (config.profile.slug && config.storage === 'isolated') {
+      const slug = this.sanitizeSlug(config.profile.slug)
       return path_.join(this.getServerFolder(config.root), slug)
     }
     return this.getServerFolder(config.root)
@@ -193,29 +210,32 @@ class Utils {
    * @returns The name of the library.
    */
   getLibraryName(libName: string): string {
-    if (libName.includes('@')) {
-      const parts = libName.split(':')
+    const parts = libName.split(':')
 
+    if (libName.includes('@')) {
       if (parts.length === 4) {
-        const artifact = parts[1] || ''
-        const version = parts[2] || ''
-        const classifierExt = parts[3] || ''
+        const name = parts[1]
+        const version = parts[2]
+        const classifierExt = parts[3]
 
         const [classifier, extension] = classifierExt.split('@')
-        return `${artifact}-${version}${classifier ? '-' + classifier : ''}.${extension}`
+        return `${name}-${version}${classifier ? '-' + classifier : ''}.${extension}`
       }
       if (parts.length === 3) {
-        const artifact = parts[1] || ''
-        const versionExt = parts[2] || ''
+        const name = parts[1]
+        const versionExt = parts[2]
 
         const [version, extension] = versionExt.split('@')
-        return `${artifact}-${version}.${extension}`
+        return `${name}-${version}.${extension}`
       }
     }
 
+    const name = parts[1] || ''
+    const version = parts[2] || ''
+    const classifier = parts[3] || ''
     const ext = 'jar'
-    const l = libName.split(':')
-    return `${l[1]}-${l[2]}${l[3] ? '-' + l[3] : ''}.${ext}`
+
+    return `${name}-${version}${classifier ? '-' + classifier : ''}.${ext}`
   }
 
   /**
@@ -227,6 +247,29 @@ class Utils {
   getLibraryPath(libName: string, ...path: string[]): string {
     const l = libName.replace(/@([a-z]*)$/, '').split(':')
     return path_.join(...path, `${l[0].replace(/\./g, '/')}/${l[1]}/${l[2]}/`)
+  }
+
+  /**
+   * Get the group, name and version of a Maven library from its name or path.
+   * @param libNameOrPath The name or path of the library.
+   * @returns An object containing the group, name and version of the library.
+   */
+  getPartsFromNameOrPath(libNameOrPath: string): { group: string; name: string; version: string } {
+    if (libNameOrPath.includes(':') && libNameOrPath.includes('@')) {
+      libNameOrPath = this.getLibraryPath(libNameOrPath)
+    }
+
+    if (libNameOrPath.includes(':')) {
+      const parts = libNameOrPath.split(':')
+      return { group: parts[0], name: parts[1], version: parts[2] }
+    }
+
+    const parts = libNameOrPath.replaceAll('\\', '/').split('/')
+    const l = parts.length
+    const version = parts[l - 2]
+    const group = parts.slice(0, l - 2).join('.')
+    const name = parts[l - 1].replace(`-${version}.jar`, '')
+    return { group, name, version }
   }
 
   /**
@@ -286,7 +329,7 @@ class Utils {
    */
   async getRemoteFileSha1(url: string, errorMsg: string): Promise<string> {
     try {
-      const req = await fetch(url, { headers: { Connection: 'close' } })
+      const req = await fetch(`${url}.sha1`, { headers: { Connection: 'close' } })
       if (!req.ok) {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `${errorMsg}: HTTP ${req.status} ${await req.text()}`)
       }
@@ -302,6 +345,88 @@ class Utils {
       .split('+')[0]
       .split('.')
       .map((n) => parseInt(n) || 0)
+  }
+
+  /**
+   * Open a zip file and return the zipfile object and an array of entries.
+   * @param zipPath Path to the zip file.
+   * @returns An object containing the zipfile and an array of entries.
+   */
+  openZip(zipPath: string): Promise<{ zipfile: yauzl.ZipFile; entries: yauzl.Entry[] }> {
+    return new Promise((resolve, reject) => {
+      yauzl.open(zipPath, { lazyEntries: false, autoClose: false }, (err, zipfile) => {
+        if (err || !zipfile) {
+          return reject(err ?? new EMLLibError(ErrorType.FILE_ERROR, `Failed to open ${zipPath}`))
+        }
+        const entries: yauzl.Entry[] = []
+        zipfile.on('entry', (entry) => entries.push(entry))
+        zipfile.on('end', () => resolve({ zipfile, entries }))
+        zipfile.on('error', reject)
+      })
+    })
+  }
+
+  /**
+   * Read the data of a zip entry and return it as a Buffer.
+   * @param zipfile The zip file object.
+   * @param entry The zip entry to read.
+   * @returns A promise resolving to the buffer containing the entry data.
+   */
+  readEntryData(zipfile: yauzl.ZipFile, entry: yauzl.Entry): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      zipfile.openReadStream(entry, (err, readStream) => {
+        if (err || !readStream) {
+          return reject(err ?? new EMLLibError(ErrorType.FILE_ERROR, `Failed to open read stream for ${entry.fileName}`))
+        }
+        const chunks: Buffer[] = []
+        readStream.on('data', (chunk) => chunks.push(chunk))
+        readStream.on('end', () => resolve(Buffer.concat(chunks)))
+        readStream.on('error', reject)
+      })
+    })
+  }
+
+  /**
+   * Extract a zip entry to a file.
+   * @param zipfile The zip file object.
+   * @param entry The zip entry to extract.
+   * @param destPath The path to the destination file.
+   * @returns A promise resolving when the extraction is complete.
+   */
+  extractEntryToFile(zipfile: yauzl.ZipFile, entry: yauzl.Entry, destPath: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      zipfile.openReadStream(entry, (err, readStream) => {
+        if (err || !readStream) {
+          return reject(err ?? new EMLLibError(ErrorType.FILE_ERROR, `Failed to open read stream for ${entry.fileName}`))
+        }
+        const writeStream = createWriteStream(destPath)
+        readStream.pipe(writeStream)
+
+        writeStream.on('close', resolve)
+        writeStream.on('error', reject)
+        readStream.on('error', reject)
+      })
+    })
+  }
+
+  /**
+   * Pipe a zip entry from a source zip file to a destination zip file using yazl.
+   * @param sourceZip The source zip file object.
+   * @param entry The zip entry to pipe.
+   * @param destZip The destination zip file object.
+   * @returns A promise resolving when the piping is complete.
+   */
+  pipeEntryToYazl(sourceZip: yauzl.ZipFile, entry: yauzl.Entry, destZip: yazl.ZipFile): Promise<void> {
+    return new Promise((resolve, reject) => {
+      sourceZip.openReadStream(entry, (err, readStream) => {
+        if (err || !readStream) {
+          return reject(err ?? new EMLLibError(ErrorType.FILE_ERROR, `Failed to open read stream for ${entry.fileName}`))
+        }
+        destZip.addReadStream(readStream, entry.fileName)
+        readStream.on('end', resolve)
+        readStream.on('error', reject)
+      })
+    })
   }
 }
 

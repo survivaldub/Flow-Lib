@@ -7,20 +7,18 @@ import { ResolvedConfig } from '../../types/config.js'
 import { MinecraftManifest } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import path_ from 'node:path'
-import { ExtraFile, ILoader } from '../../types/file.js'
+import { ExtraFile } from '../../types/file.js'
 import type { File as File_ } from '../../types/file.js'
 
-export default class ArgumentsManager {
-  private config: ResolvedConfig
-  private manifest: MinecraftManifest
-  private loaderManifest: MinecraftManifest | null
-  private loader: ILoader | null
+export default class ArgumentManager {
+  private readonly config: ResolvedConfig
+  private readonly minecraftManifest: MinecraftManifest
+  private readonly loaderManifest: MinecraftManifest | null
 
-  constructor(config: ResolvedConfig, manifest: MinecraftManifest) {
+  constructor(config: ResolvedConfig, minecraftManifest: MinecraftManifest, loaderManifest: MinecraftManifest | null) {
     this.config = config
-    this.manifest = manifest
-    this.loaderManifest = null
-    this.loader = null
+    this.minecraftManifest = minecraftManifest
+    this.loaderManifest = loaderManifest
   }
 
   getCustomArgs(injectorFiles: { injector: File_[]; files: File_[] }): { injectorPath: string; authServerUrl: string } | undefined {
@@ -35,21 +33,11 @@ export default class ArgumentsManager {
   /**
    * Get the arguments to launch the game.
    * @param libraries The libraries of the game (including loader libraries).
-   * @param loader The loader used (can be null if no loader is used).
-   * @param loaderManifest The manifest of the loader (can be null if no loader is used).
    * @param customAuth [Optional] Custom authentication method (for advanced users, use with
    * authlib-injector).
    * @returns The arguments to launch the game.
    */
-  getArgs(
-    libraries: ExtraFile[],
-    loader: ILoader | null,
-    loaderManifest: MinecraftManifest | null = null,
-    customAuth?: { injectorPath: string; authServerUrl: string }
-  ): string[] {
-    this.loaderManifest = loaderManifest
-    this.loader = loader
-
+  getArgs(libraries: ExtraFile[], customAuth?: { injectorPath: string; authServerUrl: string }): string[] {
     const jvmArgs = this.getJvmArgs(libraries, customAuth)
     const mainClass = this.getMainClass()
     const minecraftArgs = this.getMinecraftArgs()
@@ -58,7 +46,7 @@ export default class ArgumentsManager {
   }
 
   private getJvmArgs(libraries: ExtraFile[], customAuth?: { injectorPath: string; authServerUrl: string }) {
-    const nativeDirectory = path_.join(this.config.root, 'bin', this.manifest.id).replaceAll('\\', '/')
+    const nativeDirectory = path_.join(this.config.root, 'bin', this.minecraftManifest.id).replaceAll('\\', '/')
     const libraryDirectory = path_.join(this.config.root, 'libraries').replaceAll('\\', '/')
     const classpath = this.getClasspath(libraries)
 
@@ -69,19 +57,22 @@ export default class ArgumentsManager {
       args.push(`-javaagent:${customAuth.injectorPath}=${customAuth.authServerUrl}`)
     }
 
-    if (this.manifest.arguments?.jvm) {
-      ;[...this.manifest.arguments.jvm, ...(this.loaderManifest?.arguments?.jvm || [])].forEach((arg) => {
+    if (this.minecraftManifest.arguments?.jvm) {
+      const manifestArgs = [...this.minecraftManifest.arguments.jvm, ...(this.loaderManifest?.arguments?.jvm || [])]
+      manifestArgs.forEach((arg) => {
         if (typeof arg === 'string') {
           args.push(arg)
         } else if (arg.rules && utils.isArgAllowed(arg)) {
-          if (typeof arg.value === 'string') {
-            args.push(arg.value)
-          } else {
-            args.push(...arg.value)
-          }
+          if (typeof arg.value === 'string') args.push(arg.value)
+          else args.push(...arg.value)
         }
       })
     } else {
+      // const isLWJGL2 = libraries.some((lib) => lib.name && (lib.name.startsWith('lwjgl-2.')))
+      // const isMacARM = process.platform === 'darwin' && process.arch === 'arm64'
+      // const isMacIntel = process.platform === 'darwin' && process.arch === 'x64'
+      // const useStartOnFirstThread = false //(isMacARM && isLWJGL2) || isMacIntel
+
       args.push('-Djava.library.path=${natives_directory}')
       args.push('-Dminecraft.launcher.brand=${launcher_name}')
       args.push('-Dminecraft.launcher.version=${launcher_version}')
@@ -93,11 +84,11 @@ export default class ArgumentsManager {
         args.push('-Dos.version=10.0')
       }
       if (utils.getOS() === 'win') args.push('-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump')
-      if (utils.getOS() === 'mac') args.push('-XstartOnFirstThread')
+      // if (useStartOnFirstThread) args.push('-XstartOnFirstThread')
       if (utils.getArch() === '32') args.push('-Xss1M')
     }
 
-    args.push(...this.getLog4jArgs())
+    args.push(...this.getLoggingArgs())
     args.push('-Xmx${max_memory}M')
     args.push('-Xms${min_memory}M')
     args.push('-Dfml.ignoreInvalidMinecraftCertificates=true')
@@ -106,10 +97,14 @@ export default class ArgumentsManager {
       arg
         .replaceAll('${natives_directory}', nativeDirectory)
         .replaceAll('${library_directory}', libraryDirectory)
+        .replaceAll('${root_directory}', this.config.root)
         .replaceAll('${launcher_name}', `${this.config.root}-launcher`)
         .replaceAll('${launcher_version}', '2')
-        .replaceAll('${version_name}', this.manifest.id)
-        .replaceAll('${jar_path}', path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.jar`).replaceAll('\\', '/'))
+        .replaceAll('${version_name}', this.minecraftManifest.id)
+        .replaceAll(
+          '${jar_path}',
+          path_.join(this.config.root, 'versions', this.minecraftManifest.id, `${this.minecraftManifest.id}.jar`).replaceAll('\\', '/')
+        )
         .replaceAll('${classpath}', classpath)
         .replaceAll('${max_memory}', this.config.memory.max + '')
         .replaceAll('${min_memory}', this.config.memory.min + '')
@@ -117,36 +112,34 @@ export default class ArgumentsManager {
     )
   }
 
-  /**
-   * Patch Log4j vulnerability.
-   * @see [help.minecraft.net](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition)
-   */
-  private getLog4jArgs(): string[] {
+  private getLoggingArgs(): string[] {
     let args: string[] = []
+    const javaVersion = this.minecraftManifest.javaVersion?.majorVersion
 
-    if (this.manifest.id === '1.18' || this.manifest.id.startsWith('1.17')) {
+    if (javaVersion === 16 || javaVersion === 17) {
       args.push('-Dlog4j2.formatMsgNoLookups=true')
-    } else if (+this.manifest.id.split('.')[1] <= 16 && +this.manifest.id.split('.')[1] >= 12) {
-      args.push('-Dlog4j.configurationFile=log4j2_112-116.xml')
-    } else if (+this.manifest.id.split('.')[1] <= 11 && +this.manifest.id.split('.')[1] >= 7) {
-      args.push('-Dlog4j.configurationFile=log4j2_17-111.xml')
+    }
+
+    const logging = this.minecraftManifest.logging?.client
+    if (logging?.argument && logging?.file?.id) {
+      args.push(logging.argument.replace('${path}', logging.file.id))
     }
 
     return args
   }
 
   private getMinecraftArgs(): string[] {
-    const slug = utils.sanitizeSlug(this.config.storage === 'shared' && this.config.slug ? this.config.slug : '')
+    const slug = utils.sanitizeSlug(this.config.storage === 'shared' && this.config.profile.slug ? this.config.profile.slug : '')
     const gameDirectory = path_.join(this.config.root, slug).replaceAll('\\', '/')
     const assetsDirectory =
-      this.manifest.assets === 'legacy' || this.manifest.assets === 'pre-1.6'
+      this.minecraftManifest.assets === 'legacy' || this.minecraftManifest.assets === 'pre-1.6'
         ? path_.join(this.config.root, 'resources').replaceAll('\\', '/')
         : path_.join(this.config.root, 'assets').replaceAll('\\', '/')
 
     let args = [...(this.config.minecraft?.args || [])]
 
-    if (this.manifest.arguments?.game) {
-      ;[...this.manifest.arguments.game, ...(this.loaderManifest?.arguments?.game || [])].forEach((arg) => {
+    if (this.minecraftManifest.arguments?.game) {
+      ;[...this.minecraftManifest.arguments.game, ...(this.loaderManifest?.arguments?.game || [])].forEach((arg) => {
         if (typeof arg === 'string') {
           args.push(arg)
         } else if (arg.rules && utils.isArgAllowed(arg)) {
@@ -157,8 +150,8 @@ export default class ArgumentsManager {
           }
         }
       })
-    } else if (this.manifest.minecraftArguments) {
-      args.push(...(this.loaderManifest?.minecraftArguments || this.manifest.minecraftArguments).split(' '))
+    } else if (this.minecraftManifest.minecraftArguments) {
+      args.push(...(this.loaderManifest?.minecraftArguments || this.minecraftManifest.minecraftArguments).split(' '))
     }
 
     if (this.config.window.fullscreen) {
@@ -197,11 +190,11 @@ export default class ArgumentsManager {
           .replaceAll('${auth_uuid}', this.config.account.uuid)
           .replaceAll('${auth_access_token}', this.config.account.accessToken)
           .replaceAll('${user_type}', this.getUserType())
-          .replaceAll('${version_name}', this.manifest.id)
+          .replaceAll('${version_name}', this.minecraftManifest.id)
           .replaceAll('${game_directory}', gameDirectory)
           .replaceAll('${assets_root}', assetsDirectory)
-          .replaceAll('${assets_index_name}', this.manifest.assetIndex.id)
-          .replaceAll('${version_type}', this.manifest.type)
+          .replaceAll('${assets_index_name}', this.minecraftManifest.assets)
+          .replaceAll('${version_type}', this.minecraftManifest.type)
           .replaceAll('${resolution_width}', this.config.window.width + '')
           .replaceAll('${resolution_height}', this.config.window.height + '')
           .replaceAll('${auth_session}', this.config.account.accessToken) // legacy
@@ -211,7 +204,7 @@ export default class ArgumentsManager {
   }
 
   private getUserType(): string {
-    if (this.manifest.id.startsWith('1.16') && this.config.account.meta.type === 'msa') {
+    if (this.minecraftManifest.id.startsWith('1.16') && this.config.account.meta.type === 'msa') {
       return 'Xbox'
     } else if (this.config.account.meta.type === 'yggdrasil') {
       return 'Mojang'
@@ -247,6 +240,7 @@ export default class ArgumentsManager {
   }
 
   private getMainClass() {
-    return this.loaderManifest?.mainClass ?? this.manifest.mainClass
+    return this.loaderManifest?.mainClass ?? this.minecraftManifest.mainClass
   }
 }
+

@@ -15,7 +15,7 @@ import Background from './lib/background/background.js'
 import ServerStatus from './lib/serverstatus/serverstatus.js'
 import Java from './lib/java/java.js'
 import Launcher from './lib/launcher/launcher.js'
-import Profiles from './lib/profile/profile.js'
+import Profile from './lib/profile/profile.js'
 import Stats from './lib/stats/stats.js'
 import CrashReport from './lib/crashreport/crashreport.js'
 
@@ -25,7 +25,8 @@ type EMLLib = {
   AzAuth: typeof AzAuth
   CrackAuth: typeof CrackAuth
   Java: typeof Java
-  Profiles: typeof Profiles
+  Profiles: typeof Profile // backward compatibility
+  Profile: typeof Profile
   Launcher: typeof Launcher
   Bootstraps: typeof Bootstrap // backward compatibility
   Bootstrap: typeof Bootstrap
@@ -121,11 +122,16 @@ export { News }
 export { Background }
 
 /**
+ * @deprecated Use `Profile` instead.
+ */
+export { Profile as Profiles }
+
+/**
  * Get the profiles from the EML AdminTool.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
-export { Profiles }
+export { Profile }
 
 /**
  * Get the status of a Minecraft server.
@@ -190,12 +196,15 @@ export { CrashReport }
  *
  * **Requirements:**
  * - Node.js 18 or higher: see [Node.js](https://nodejs.org/);
- * - Electron 20 or higher _if you use Microsoft Authentication_: please install it with
- * `npm i electron`.
+ * - Windows 10 or higher, macOS 10.15 or higher, Linux with glibc 2.28 or higher;
+ * - Electron 21 or higher: please install it with `npm i electron` (see README for more 
+ * information about this requirement);
+ * - electron-updater 6.0 or higher: please install it with `npm i electron-updater` (see README 
+ * for more information about this requirement);
  *
  * **Recommandations:**
- * - Always use this library from the `main` process of Electron, and forward events to the
- * `renderer` process using IPC if needed.
+ * - Always use this library from the `main` process of Electron (Node.js context), and forward 
+ * events to the `renderer` process using IPC if needed.
  * - To get all the capacities of this Node.js library, you should set up your
  * [EML AdminTool](https://emlproject.com/docs/eml-admintool/system-requirements) instance!
  * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.com/resources/modpack-json-generator/)
@@ -218,10 +227,10 @@ export { CrashReport }
  *
  *   // 2. Setup launcher
  *   const launcher = new Launcher({
- *     url: 'https://at.emlproject.com',
- *     root: 'goldfrite',
+ *     url: 'https://at.emlproject.com', // Your EML AdminTool URL
+ *     root: 'my-server',
  *     account: account,
- *     memory: { min: 2048, max: 1024 },
+ *     memory: { min: 1024, max: 2048 },
  *   })
  *
  *   // 3. Launch
@@ -238,7 +247,7 @@ export { CrashReport }
  *
  * ---
  *
- * @version 2.5.0
+ * @version 2.7.4
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2026, GoldFrite and contributors
  */
@@ -311,11 +320,16 @@ const EMLLib = {
   Background,
 
   /**
+   * @deprecated Use `Profile` instead.
+   */
+  Profiles: Profile,
+
+  /**
    * Get the profiles from the EML AdminTool.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
-  Profiles,
+  Profile,
 
   /**
    * Get the status of a Minecraft server.
@@ -374,3 +388,4 @@ const EMLLib = {
 } as EMLLib
 
 export default EMLLib
+

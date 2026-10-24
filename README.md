@@ -1,10 +1,10 @@
-# Electron Minecraft Launcher Lib (EML Lib)
+# EML Lib
 
 **Electron Minecraft Launcher Lib (EML Lib) is a Node.js library. It permits to authenticate, download Java and Minecraft and launch Minecraft.**
 
 [<img src="https://img.shields.io/badge/Discord-EML-5561e6?&style=for-the-badge">](https://emlproject.com/discord/github)
 [<img src="https://img.shields.io/badge/platforms-Windows%2C%20macOS%2C%20Linux-0077DA?style=for-the-badge&color=0077DA">](#platforms)
-[<img src="https://img.shields.io/badge/version-2.5.0-orangered?style=for-the-badge&color=orangered">](package.json)
+[<img src="https://img.shields.io/badge/version-2.7.4-orangered?style=for-the-badge&color=orangered">](package.json)
 
 <p>
 <center>
@@ -24,9 +24,9 @@ EML Lib supports multiple authentication methods, including Microsoft, Azuriom, 
 
 _Read the docs for [MicrosoftAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/microsoftauth), [YggdrasilAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/yggdrasilauth), [AzAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/azuriomauth) and [CrackAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/crackauth)._
 
-### Launch settings
+### Launching Minecraft
 
-Choose the Minecraft version and loader that you want to launch. EML Lib supports all Minecraft versions, from Minecraft beta to the latest Minecraft snapshot, and all loaders, including Vanilla, Forge, NeoForge, Fabric and Quilt. MCP support is coming soon. <br/>
+Choose the Minecraft version and loader that you want to launch. EML Lib supports all Minecraft versions, from Minecraft beta [^1] to the latest Minecraft snapshot, and all loaders: Vanilla, Forge, NeoForge, Fabric and Quilt, and even custom loaders.<br/>
 EML Lib also allows you to use _Profiles_, which are sets of settings (such as Minecraft version, loader, mods, etc.) that you can save and reuse later.
 
 EML Lib can automatically download and install Java to ensure that you have the correct Java version for the Minecraft version you want to launch. It also supports custom Java paths if you prefer to use your own Java installation.
@@ -37,23 +37,23 @@ _Read the docs for [Profiles](https://emlproject.com/docs/eml-lib-and-launcher/a
 
 ### Skin and cape management
 
-EML Lib can allow your players to manage their skins and capes. It supports the official Miccrosoft skin and cape system, as well as custom skins and capes. Players can change their skins and capes directly from the launcher.
+EML Lib can allow your players to manage their skins and capes. It supports the official Microsoft skin and cape system, as well as custom skins and capes. Players can change their skins and capes directly from the launcher.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/skin)._
 
-### Bootstrap [^1]
+### Bootstrap [^2]
 
 _Bootstrap_ is a powerful feature that allows you to auto-update your launcher. It checks for updates on a specified URL and downloads and installs them automatically. This ensures that your launcher is always up to date with the latest features and bug fixes.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/bootstrap)._
 
-### Maintenance mode [^1]
+### Maintenance mode [^2]
 
 _Maintenance_ mode is a feature that allows you to block the launcher during maintenance. When maintenance mode is enabled, users will see a message indicating that the launcher is under maintenance and will not be able to launch Minecraft until the maintenance is complete.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/maintenance)._
 
-### Customization [^1]
+### Customization [^2]
 
 EML Lib allows you to customize the launcher with various features, including:
 
@@ -63,15 +63,15 @@ EML Lib allows you to customize the launcher with various features, including:
 
 _Read the docs for [News](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/news), [Background](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/background) and [ServerStatus](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/serverstatus)._
 
-### Stats [^1]
+### Stats [^2]
 
 _Stats_ is a feature that allows you to collect and send anonymized usage statistics to EML AdminTool. This helps you understand how users are interacting with your launcher and can help you improve the user experience.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/stats)._
 
-### Crash reports [^1]
+### Crash Reports [^2]
 
-_Crash reports_ is a feature that allows you to collect and send crash reports to EML AdminTool. This helps you understand what went wrong when the launcher crashes and can help you fix the issues.
+_Crash Reports_ is a feature that allows you to collect and send crash reports to EML AdminTool. This helps you understand what went wrong when the launcher crashes and can help you fix the issues.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/crash-reports)._
 
@@ -79,13 +79,13 @@ _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/
 
 There are already several Node.js libraries to launch Minecraft. Here is how EML Lib compares to the main ones.
 
-| Solution                         | Language / License       | Actively maintained     | Auth                                 | Loaders                                 | Agnostic mode | Ecosystem                   |
-| -------------------------------- | ------------------------ | ----------------------- | ------------------------------------ | --------------------------------------- | ------------- | --------------------------- |
-| **EML Lib**                      | TypeScript / MIT         | Yes                     | Microsoft, Azuriom, Yggdrasil, Crack | Vanilla, Forge, NeoForge, Fabric, Quilt | Yes (v2.2.0+) | EML AdminTool, EML Template |
-| **MCLC** (Pierce01)              | JavaScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge only                              | Yes           | None                        |
-| **minecraft-java-core** (Luuxis) | TypeScript / Custom [^2] | Yes                     | Microsoft, Azuriom                   | Vanilla, Forge, NeoForge, Fabric, Quilt | Yes           | Selvania Launcher           |
-| **GMLL** (Hanro50)               | TypeScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge, Fabric, Quilt                    | Yes           | None                        |
-| **@xmcl packages** (Voxelum)     | TypeScript / MIT         | Yes                     | — (low-level toolkit)                | All                                     | Yes           | XMCL launcher               |
+| Solution                         | Language / License       | Actively maintained     | Auth                                 | Loaders                                         | Ecosystem                                 |
+| -------------------------------- | ------------------------ | ----------------------- | ------------------------------------ | ----------------------------------------------- | ----------------------------------------- |
+| **EML Lib**                      | TypeScript / MIT         | Yes                     | Microsoft, Azuriom, Yggdrasil, Crack | Vanilla, Forge, NeoForge, Fabric, Quilt, Custom | EML AdminTool, EML Template               |
+| **MCLC** (Pierce01)              | JavaScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge only                                      | None                                      |
+| **minecraft-java-core** (Luuxis) | TypeScript / Custom [^3] | Yes                     | Microsoft, Azuriom, Crack            | Vanilla, Forge, NeoForge, Fabric, Quilt, Custom | LuuxCraft Panel (paid), Selvania Launcher |
+| **GMLL** (Hanro50)               | TypeScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge, Fabric, Quilt                            | None                                      |
+| **@xmcl packages** (Voxelum)     | TypeScript / MIT         | Yes                     | — (low-level toolkit)                | All                                             | XMCL launcher                             |
 
 ### Key difference
 
@@ -99,72 +99,120 @@ This is especially useful for:
 
 If you do not need a backend, use agnostic mode with a [hosted JSON modpack file](https://emlproject.com/resources/modpack-json-generator). If you want a full administration dashboard, pair EML Lib with [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool).
 
+## Runtime environments & Architecture
+
+EML Lib runs in **Node.js (`>= 18`)**. It is primarily built to power **Electron** desktop applications, but it can also be used in **standalone Node.js** (CLI tools, automation scripts, server bots) with minor limitations.
+
+| Feature                                       |                 Standalone Node.js                 | Electron (`main` process) | Browser / Renderer |
+| --------------------------------------------- | :------------------------------------------------: | :-----------------------: | :----------------: |
+| **Azuriom, Yggdrasil & Crack authentication** |                         ✅                         |            ✅             |         ✅         |
+| **Microsoft authentication**                  |           ❌<br />_(requires Electron)_            |            ✅             |         ❌         |
+| **Launching Minecraft**                       |                         ✅                         |            ✅             |         ❌         |
+| **Skin and cape management**                  |                         ✅                         |            ✅             |         ✅         |
+| **Bootstrap**                                 | ❌<br />_(requires Electron and electron-updater)_ |            ✅             |         ❌         |
+| **Maintenance mode**                          |                         ✅                         |            ✅             |         ✅         |
+| **News**                                      |                         ✅                         |            ✅             |         ✅         |
+| **Background**                                |                         ✅                         |            ✅             |         ✅         |
+| **Server status**                             |                         ✅                         |            ✅             |         ❌         |
+| **Stats**                                     |                         ✅                         |            ✅             |         ✅         |
+| **Crash report**                              |                         ✅                         |            ✅             |         ❌         |
+
+> [!IMPORTANT]
+> **Best Practice for Electron apps:** Always instantiate EML Lib in the **Electron Main Process** (Node.js context) and bridge actions/events to your Renderer (UI) via standard IPC (`ipcMain` / `ipcRenderer`). Do not attempt to run the core launcher inside the frontend renderer.
+
 ## Installation
 
 ### Software requirements
 
-- Node.js 20 or higher: see [Node.js](https://nodejs.org/);
-- Electron 23 or higher: please install it with `npm i electron` _if you use Microsoft Authentication_.
+- **Node.js** (`>= 18.0.0`): required for development and build.
+- **Operating systems (development and build)**:
+  - Windows 10 or 11;
+  - macOS 10.15 (Catalina) or higher;
+  - Linux with `glibc >= 2.28` (e.g. Ubuntu 20.04+, Debian 10+).
+- **Target operating systems (end-user runtime)**:
+  - Windows 7 or higher (when packaged with Electron 21/22);
+  - macOS 10.13 or higher (when packaged with Electron 21/22);
+  - Linux 64-bit (`glibc >= 2.28`).
+- **Optional peer dependencies**: (see [above](#runtime-environments--architecture) for details)
+  - `electron` (`>= 21.0.0`);
+  - `electron-updater` (`>= 6.0.0`).
 
 To get all the capacities of this Node.js library, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, some features will be unavailable (such as News, Bootstrap, etc.).
 
 ### EML Lib installation
 
-You need [Node.js](https://nodejs.org) and [Electron](https://electronjs.org).
-
 ```bash
-# Using npm
+# Core library
 npm i eml-lib
+
+# Optional peer dependencies for full Electron support
+npm i electron electron-updater
 ```
 
-`eml-lib` package includes TypeScript typings, so you don't need to install `@types/eml-lib`.
+`eml-lib` is written in TypeScript and exports its types natively.
 
 ### Template
 
-You can use the [EML Template](https://github.com/Electron-Minecraft-Launcher/EML-Template) to create a Minecraft launcher with EML Lib. It is an Electron application that uses EML Lib to launch Minecraft. It is a good starting point to create your own Minecraft launcher.
+You can use [EML Template](https://github.com/Electron-Minecraft-Launcher/EML-Template) to create a Minecraft launcher with EML Lib. It is an Electron application that uses EML Lib to launch Minecraft. It is a good starting point to create your own Minecraft launcher.
 
 ### Quick start
 
-Quick start using the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool):
+Quick start using [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool):
 
 ```js
-const EMLLib = require('eml-lib')
+import EMLLib from 'eml-lib'
 
 const launcher = new EMLLib.Launcher({
   url: 'https://at.emlproject.com', // Your EML AdminTool URL
-  root: 'eml',
+  root: 'my-server',
   account: new EMLLib.CrackAuth().auth('GoldFrite')
 })
 
-launcher.launch()
+await launcher.launch()
 ```
 
 Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/getting-started/set-up-environment) for more information.
 
 ## Platform compatibility
 
-| OS (platform)              | Supported?     | Minimum version supported  |
-| -------------------------- | -------------- | -------------------------- |
-| Windows (win32)            | Yes            | Windows 7 (Windows NT 6.1) |
-| macOS (Darwin)             | Yes            | Mac OS X Lion (10.7)       |
-| Linux, including Chrome OS | Yes            | Variable                   |
-| Others                     | Not officially | -                          |
+| OS and Architecture | Supported?         | Minimum version supported |
+| ------------------- | ------------------ | ------------------------- |
+| Windows x64         | Yes                | Windows 7                 |
+| Windows arm64       | Yes                | Windows 10                |
+| macOS x64           | Yes                | macOS Catalina (10.15)    |
+| macOS arm64         | Yes                | macOS Big Sur (11)        |
+| Linux x64           | Probably yes       | —                         |
+| Linux arm64         | Probably partially | —                         |
+
+<sup>- _Yes_ means that the library has been tested and is known to work on this platform at least for Minecraft 1.6 and above (Vanilla and modded).</sup><br />
+<sup>- _Probably yes_ means that the library has not been tested on this platform, but it is expected to work for Minecraft 1.6 and above (Vanilla and modded), since the Minecraft manifests are complete for this platform.</sup><br />
+<sup>- _Probably partially_ means that the library has not been tested on this platform, and it is expected to work only for some Minecraft versions (Vanilla or modded), since the Minecraft manifests are not fully complete for this platform.</sup>
+
+</small>
 
 > [!WARNING]
-> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.13 and above.
+> No support will be provided for any other OS or architecture.
 
-> [!WARNING]
-> No support will be provided for older versions of Windows, macOS and Linux, or for other operating systems.
+<details>
+<summary><b>Note about the ARM architecture</b></summary>
+<br>
 
-## Tests
+Historically, Minecraft was developed for x86 architectures (32-bit and 64-bit), including:
 
-The library has been tested on Windows 11 and macOS Tahoe (M3) with Node.js 22, on multiple Minecraft versions, from 1.0 to the Minecraft 26.1-snapshot, and with multiple loaders (Vanilla, Forge, NeoForge, Fabric and Quilt).
+- Windows PCs with Intel or AMD processors;
+- Macs with Intel processors;
+- x86 Linux distributions.
 
-> [!WARNING]
-> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.13 and above.
+Since 2020, the ARM architecture has become more widespread with Apple Silicon chips (M1, M2, etc.) and Windows 11 ARM laptops. Since the game was not initially compatible, Apple and Microsoft have integrated virtualization/emulation layers (Rosetta 2 for macOS, Prism/native emulation for Windows). While this simplifies things for developers, it comes at the expense of user performance. Furthermore, Rosetta can sometimes be finicky with very old versions of Minecraft (1.12.2 and earlier), forcing launchers to resort to workarounds.
 
-> [!WARNING]
-> Forge is supported only for Minecraft 1.6 and above.
+In 2022, Minecraft finally became available on ARM architecture with the release of version 1.19, enabling a native, high-performance experience. However, given the evolution of operating systems and Apple's announced phased-out support for Rosetta 2 for general applications, launchers must ensure continued access to older versions of the game. This is where EML Lib comes in: the library meticulously corrects and updates every obsolete file in a completely transparent manner.
+Thanks to a system of smart patches, EML Lib allows Minecraft to run natively on all Macs (Intel and Apple Silicon), from version 1.6 to the latest! A few trade-offs remain, such as minor bugs when resizing the window or incompatibilities with certain older, unupdated mods.
+
+As for Windows 11 ARM, EML Lib has made the strategic choice to rely on the built-in x64 emulation for older versions. Extremely efficient on Windows, this approach guarantees maximum stability and full compatibility with the mod ecosystem.
+
+##
+
+</details>
 
 ## Contributing
 
@@ -178,7 +226,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to 
 
 <br/>
 
-[^1]: These features require the use of the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool)
+[^1]: Depends on the OS and the architecture. ARM architectures (such as Apple Silicon) only supports Minecraft 1.6 and above. See the [Platform compatibility](#platform-compatibility) section for more information.
 
-[^2]: `minecraft-java-core` is distributed under a custom restrictive license. Commercial use by third parties and closed-source derivatives are prohibited. Read the LICENSE file carefully before adopting it.
+[^2]: These features require the use of the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool)
+
+[^3]: `minecraft-java-core` is distributed under a custom restrictive license. Commercial use by third parties and closed-source derivatives are prohibited. Read the LICENSE file carefully before adopting it.
 

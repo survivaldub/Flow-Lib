@@ -1,5 +1,4 @@
 import EMLLib from '../index.js'
-import { IProfile } from '../types/profile.js'
 
 async function mainWithElectron() {
   const { app, BrowserWindow } = await import('electron')
@@ -22,7 +21,7 @@ async function mainWithElectron() {
       const skin = new EMLLib.Skin(account)
 
       console.log('Authenticated account:', account)
-      console.log('Skin is:', await skin.getSkin())
+      console.log('Avatar is:', await skin.getAvatar())
     } catch (err) {
       console.error('Authentication error:', err)
     }
@@ -32,20 +31,21 @@ async function mainWithElectron() {
 }
 
 async function main() {
-  const stats = new EMLLib.Stats('http://localhost:5173', '1.0.0')
-  const crarhReport = new EMLLib.CrashReport('http://localhost:5173')
-  await stats.initialize()
-
-  const auth = new EMLLib.CrackAuth()
-  stats.attach(auth)
-
   const launcher = new EMLLib.Launcher({
     root: 'goldfrite',
-    account: auth.auth('GoldFrite'),
+    account: new EMLLib.CrackAuth().auth('GoldFrite'),
     storage: 'isolated',
-    url: 'http://localhost:5173'
+    minecraft: {
+      version: '1.21.1',
+      loader: {
+        loader: 'neoforge',
+        version: '21.1.172'
+      }
+    },
+    cleaning: {
+      // enabled: false,
+    }
   })
-  stats.attach(launcher)
 
   try {
     launcher.on('launch_compute_download', () => console.log('\nComputing download...'))
@@ -55,14 +55,14 @@ async function main() {
     launcher.on('download_error', (error) => console.error(error.type, `=> Error downloading ${error.filename}: ${error.message}`))
     launcher.on('download_end', (info) => console.log(`Downloaded ${info.downloaded.amount} files.`))
 
-    launcher.on('launch_install_loader', (loader) => console.log(`\nInstalling loader ${loader.type} ${loader.loaderVersion}...`))
+    launcher.on('launch_install_loader', (minecraft) => console.log(`\nInstalling loader ${minecraft.loader.loader} ${minecraft.loader.version}...`))
 
     launcher.on('launch_extract_natives', () => console.log('\nExtracting natives...'))
     launcher.on('extract_progress', (progress) => console.log(`Extracted ${progress.filename}.`))
     launcher.on('extract_end', (info) => console.log(`Extracted ${info.amount} files.`))
 
     launcher.on('launch_copy_assets', () => console.log('\nCopying assets...'))
-    launcher.on('copy_progress', (progress) => console.log(`Copyed ${progress.filename} to ${progress.dest}.`))
+    // launcher.on('copy_progress', (progress) => console.log(`Copyed ${progress.filename} to ${progress.dest}.`))
     launcher.on('copy_end', (info) => console.log(`Copied ${info.amount} files.`))
 
     launcher.on('launch_patch_loader', () => console.log('\nPatching loader...'))
@@ -82,12 +82,12 @@ async function main() {
     launcher.on('launch_close', (code) => console.log(`Closed with code ${code}.`))
 
     launcher.on('launch_debug', (message) => console.log(`Debug: ${message}\n`))
-    launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
+    // launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
 
     launcher.on('launch_crash', async (crashData) => {
       console.error(`\nGame crashed with code ${crashData.code}. Sending crash report...`)
       try {
-        await crarhReport.send(launcher, crashData)
+        // await crarhReport.send(launcher, crashData)
         console.log('Crash report sent successfully.')
       } catch (err) {
         console.error('Failed to send crash report:', err)
@@ -101,11 +101,8 @@ async function main() {
 }
 
 async function featureTest() {
-  const account = new EMLLib.CrackAuth().auth('GoldFrte')
-
-  const profile = new EMLLib.Maintenance('http://localhost:5173', account)
-
-  console.log('Profiles:', await profile.getMaintenance())
+  
 }
 
-featureTest()
+main()
+

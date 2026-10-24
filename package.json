@@ -1,7 +1,7 @@
 {
   "name": "eml-lib",
-  "version": "2.5.0",
-  "description": "Create your Electron Minecraft Launcher easily!",
+  "version": "2.7.4",
+  "description": "A Node.js library to build your Minecraft launcher easily with Electron.",
   "author": "GoldFrite",
   "license": "MIT",
   "main": "index.js",
@@ -18,43 +18,38 @@
     "url": "git+https://github.com/Electron-Minecraft-Launcher/EML-Lib.git"
   },
   "keywords": [
-    "electron",
-    "nodejs",
-    "minecraft",
     "forge",
+    "fabric",
+    "neoforge",
+    "quilt",
     "launcher",
-    "mods",
-    "authentication",
-    "modpack",
-    "minecraft-launcher",
-    "microsoft-auth",
-    "custom-minecraft-launcher",
-    "packwiz-alternative"
+    "minecraft",
+    "custom",
+    "nodejs",
+    "electron"
   ],
   "bugs": {
     "url": "https://github.com/Electron-Minecraft-Launcher/EML-Lib/issues"
   },
-  "homepage": "https://github.com/Electron-Minecraft-Launcher/EML-Lib#readme",
+  "homepage": "https://emlproject.com/docs/",
   "dependencies": {
     "tslib": "^2.8.1",
     "yauzl": "^3.4.0",
     "yazl": "^3.3.1"
   },
   "devDependencies": {
-    "@types/pngjs": "^6.0.5",
-    "@types/yauzl": "^2.10.3",
+    "@types/node": "^26.6.5",
+    "@types/yauzl": "^3.4.0",
     "@types/yazl": "^3.3.1",
-    "electron": "^43.1.0",
+    "electron": "^44.9.0",
     "electron-updater": "^6.8.9",
-    "pngjs": "^7.0.0",
-    "prettier": "^3.9.5",
-    "tsx": "^4.23.1",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "electron": "^43.1.0",
-    "electron-updater": "^6.8.9",
-    "pngjs": "^7.0.0"
+    "electron": ">=21.0.0",
+    "electron-updater": ">=6.0.0"
   },
   "peerDependenciesMeta": {
     "electron": {
@@ -62,9 +57,9 @@
     },
     "electron-updater": {
       "optional": true
-    },
-    "pngjs": {
-      "optional": true
     }
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

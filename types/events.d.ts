@@ -28,10 +28,11 @@ export interface LauncherEvents {
   ]
   launch_install_loader: [
     {
-      type: 'VANILLA' | 'FORGE' | 'NEOFORGE' | 'FABRIC' | 'QUILT'
-      minecraftVersion: string
-      loaderVersion: string | null
-      format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
+      version: string,
+      loader: {
+        loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
+        version: string
+      }
     }
   ]
   launch_copy_assets: []
@@ -46,7 +47,7 @@ export interface LauncherEvents {
   launch_crash: [CrashData]
 }
 
-export interface FilesManagerEvents {
+export interface FileManagerEvents {
   extract_progress: [{ filename: string }]
   extract_end: [{ amount: number }]
   copy_progress: [{ filename: string; dest: string }]
