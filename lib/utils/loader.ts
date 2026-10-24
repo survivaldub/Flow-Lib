@@ -45,13 +45,16 @@ class Loader {
           throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader info: HTTP ${req.status} ${errorText}`)
         }
         const data: ILoader = await req.json()
+        // Only custom loaders come with their own manifest (JSON). Profiles migrated from EML AdminTool 2.5
+        // still keep the Forge/NeoForge installer (a .jar) in `file`; this version downloads it on its own.
+        const manifestUrl = data.file?.url && !/\.jar(\?|$)/i.test(data.file.url) ? data.file.url : undefined
 
         return {
           version: data.minecraftVersion,
           loader: {
             loader: data.type.toLowerCase() as 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt',
             version: data.loaderVersion ?? data.minecraftVersion,
-            manifestUrl: data.file?.url
+            manifestUrl
           },
           modpackUrl: config.url ? `${config.url}/api/files-updater/${config.profile.slug ?? ''}` : config.minecraft.modpackUrl!,
           args: config.minecraft.args
